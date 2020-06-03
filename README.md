@@ -2,7 +2,7 @@
     <img src="./logo.png">
 </p>
 
-# Cdb
+# Cdb [![Build Status](https://travis-ci.com/aliwalker/cdb.svg?branch=master)]
 
 Cdb is simple distributed key-value data store that utilizes 2-phase commit and leveldb. It consists of one coordinator and multiple participants. The client interacts with the coordinator using a simplified RESP message format over a TCP connection, while the coordinator sends RPC to all its participants.
 
