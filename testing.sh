@@ -160,58 +160,7 @@ function check_background_process_start_status
 	fi
 }
 
-function language_checking
-{
-	echo "Language checking......"
-	java_file_counter=`ls -1 ${LAB3_ABSOLUTE_PATH}/*.java ${LAB3_ABSOLUTE_PATH}/*.jar 2>/dev/null | wc -l`
-	jar_file_counter=`ls -1 ${LAB3_ABSOLUTE_PATH}/kvstore2pcsystem.jar 2>/dev/null | wc -l`
-	c_file_counter=`ls -1 ${LAB3_ABSOLUTE_PATH}/*.c 2>/dev/null | wc -l`
-	cpp_file_counter=`ls -1 ${LAB3_ABSOLUTE_PATH}/*.cc ${LAB3_ABSOLUTE_PATH}/*.cpp ${LAB3_ABSOLUTE_PATH}/*.hpp 2>/dev/null | wc -l`
-	python_file_counter=`ls -1 ${LAB3_ABSOLUTE_PATH}/*.py 2>/dev/null | wc -l`
-	kvstore2pcsystem_py_file_counter=`ls -1 ${LAB3_ABSOLUTE_PATH}/kvstore2pcsystem.py 2>/dev/null | wc -l`
-
-	if [ $java_file_counter -gt 0 ]
-	then
-		if [ $c_file_counter -eq 0 -a $cpp_file_counter -eq 0 ] && [ $python_file_counter -eq 0 ]
-		then
-			echo "Language: [ JAVA ]"
-			if [ $jar_file_counter -eq 0 ]
-			then
-				echo "[Warning] : Have no file: kvstore2pcsystem.jar"
-				return $NO_JAR_FILE
-			fi
-			return $JAVA
-		fi
-	fi
-
-	if [ $python_file_counter -gt 0 ]
-	then
-		if [ $c_file_counter -eq 0 -a $cpp_file_counter -eq 0 ] && [ $java_file_counter -eq 0 ]
-		then
-			echo "Language: [ PYTHON ]"
-			if [ $kvstore2pcsystem_py_file_counter -eq 0 ]
-			then
-				echo "Warning: [ Have no file: kvstore2pcsystem.py ]"
-				return $NO_KVSTORE2PCSYSTEM_PY_FILE
-			fi
-			return $PYTHON
-		fi
-	fi
-
-	if [ $c_file_counter -gt 0 ] || [ $cpp_file_counter -gt 0 ]
-	then
-		if [ $java_file_counter -eq 0 ] && [ $python_file_counter -eq 0 ]
-		then
-			echo "Language: [ C/C++ ]"
-			return $C_OR_CPP
-		fi
-	else
-		echo "Warning: [ UNKNOWN programing_language ]"
-		return $UNKNOWN_LANGUAGE
-	fi
-}
-
-function run_kvstore2pcsystem_c_and_other_language_robustly
+function run_kvstore2pcsystem
 {
 	chmod 777 ${LAB3_ABSOLUTE_PATH}/*
 	
@@ -274,200 +223,23 @@ function run_kvstore2pcsystem_c_and_other_language_robustly
 	return $SUCCESS
 }
 
-
-function run_kvstore2pcsystem_java_robustly
-{
-	chmod 777 ${LAB3_ABSOLUTE_PATH}/*
-
-	for (( i=0; i<$START_RETYR_TIMES; i++ ))
-	do
-		java -jar ${LAB3_ABSOLUTE_PATH}/kvstore2pcsystem.jar --config_path ${coordinator_config_path} &
-		check_background_process_start_status $!
-		retval=$?
-		sleep 0.5
-
-		if [[ $retval -eq 0 ]]
-		then
-			echo "Run coordinator successfully"
-			coordinator_pid=$!
-			break
-		else
-			sleep 1
-			continue
-		fi
-	done
-
-	if [ $retval -eq 0 ]
-	then
-		if [[ $1 -eq $START_COORDINATOR_ONLY ]]
-		then
-			return $SUCCESS
-		fi
-
-		for (( i=0; i<3; i++ ))
-		do
-			for (( j=0; j<$START_RETYR_TIMES; j++ ))
-			do
-				java -jar ${LAB3_ABSOLUTE_PATH}/kvstore2pcsystem.jar --config_path ${participants_config_path[i]} &
-				check_background_process_start_status $!
-				retval=$?
-
-				if [[ $retval -eq 0 ]]
-				then
-					echo "Run participant[$i] successfully"
-					participants_pid[$i]=$!
-					break
-				else
-					echo "Run participant[$i]. Retry times: [$j]"
-					continue
-				fi
-			done
-
-			if [[ $retval -ne 0 ]]
-			then
-				echo "Run participant[$i] failed"
-				return $FAIL
-			fi
-		done
-	else
-		echo "Run coordinator failed"
-		return $FAIL
-	fi
-
-	echo "Run kvstore2pcsystem successfully"
-	return $SUCCESS
-}
-
-function run_kvstore2pcsystem_python_robustly
-{
-	chmod 777 ${LAB3_ABSOLUTE_PATH}/*
-
-	for (( i=0; i<$START_RETYR_TIMES; i++ ))
-	do
-		python3 ${LAB3_ABSOLUTE_PATH}/kvstore2pcsystem.py --config_path ${coordinator_config_path} &
-		check_background_process_start_status $!
-		retval=$?
-		sleep 0.5
-
-		if [[ $retval -eq 0 ]]
-		then
-			echo "Run coordinator successfully"
-			coordinator_pid=$!
-			break
-		else
-			sleep 1
-			continue
-		fi
-	done
-
-	if [ $retval -eq 0 ]
-	then
-		if [[ $1 -eq $START_COORDINATOR_ONLY ]]
-		then
-			return $SUCCESS
-		fi
-
-		for (( i=0; i<3; i++ ))
-		do
-			for (( j=0; j<$START_RETYR_TIMES; j++ ))
-			do
-				python3 ${LAB3_ABSOLUTE_PATH}/kvstore2pcsystem.py --config_path ${participants_config_path[i]} &
-				retval=$?
-
-				if [[ $retval -eq 0 ]]
-				then
-					echo "Run participant[$i] successfully"
-					participants_pid[$i]=$!
-					break
-				else
-					echo "Run participant[$i]. Retry times: [$j]"
-					continue
-				fi
-			done
-
-			if [[ $retval -ne 0 ]]
-			then
-				echo "Run participant[$i] failed"
-				return $FAIL
-			fi
-		done
-	else
-		echo "Run coordinator failed"
-		return $FAIL
-	fi
-
-	echo "Run kvstore2pcsystem successfully"
-	return $SUCCESS
-}
-
 function run_kvstore2pcsystem_robustly
 {
-	language_checking
-
-	programing_language=$?
-
-	# other language
-	if [ $programing_language -eq $UNKNOWN_LANGUAGE ]
+	do_make
+	retval=$?
+	if [ $retval -eq $SUCCESS ]
 	then
-		echo "Start system: [ UNKNOWN LANGUAGE ]"
-		run_kvstore2pcsystem_c_and_other_language_robustly $1
-		retval=$?
-
-		if [ $retval -eq $SUCCESS ]
-		then
-			return $SUCCESS
-		else
-			return $FAIL
-		fi
-	fi
-
-	# c or c++
-	if [ $programing_language -eq $C_OR_CPP ]
-	then
-		do_make
-		retval=$?
-		if [ $retval -eq $SUCCESS ]
-		then
-			echo "Start system: [ C/C++ ]"
-			run_kvstore2pcsystem_c_and_other_language_robustly $1
-			retval=$?
-			if [ $retval -eq $SUCCESS ]
-			then
-				return $SUCCESS
-			else 
-				return $FAIL
-			fi
-		else
-			return $FAIL
-		fi
-	fi
-
-	# java
-	if [ $programing_language -eq $JAVA ]
-	then
-		echo "Start system: [ JAVA ]"
-		run_kvstore2pcsystem_java_robustly $1
+		echo "Start kvstore2pcsystem"
+		run_kvstore2pcsystem $1
 		retval=$?
 		if [ $retval -eq $SUCCESS ]
 		then
 			return $SUCCESS
-		else
+		else 
 			return $FAIL
 		fi
-	fi
-
-	# python
-	if [ $programing_language -eq $PYTHON ]
-	then
-		echo "Start system: [ PYTHON ]"
-		run_kvstore2pcsystem_python_robustly $1
-		retval=$?
-		if [ $retval -eq $SUCCESS ]
-		then
-			return $SUCCESS
-		else
-			return $FAIL
-		fi
+	else
+		return $FAIL
 	fi
 }
 
