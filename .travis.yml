@@ -1,0 +1,14 @@
+language: cpp
+dist: bionic
+
+compiler:
+- gcc
+- clang
+
+os: linux
+sudo: true
+
+before_install:
+  - sudo apt-get install build-essential
+
+script: testing.sh .
