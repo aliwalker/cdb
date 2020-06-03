@@ -11,4 +11,4 @@ sudo: true
 before_install:
   - sudo apt-get install build-essential
 
-script: testing.sh .
+script: ./testing.sh ./
