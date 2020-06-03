@@ -1,0 +1,8 @@
+#ifndef TCP_SERVER_COMMON_HPP
+#define TCP_SERVER_COMMON_HPP
+
+#ifndef TCP_SERVER_BACK_LOG
+    #define TCP_SERVER_BACK_LOG   1024
+#endif
+
+#endif

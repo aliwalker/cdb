@@ -1,0 +1,7 @@
+There're a lot of improvements to make. However, since I'm the only developer of this DB, I do not have enought time.
+
+- Write the kvstore2pcsystem program.
+- Add logger.
+- Write a frontend.
+- Remove all the crazy Makefile things.
+- Make coordinator fault-tolerant.

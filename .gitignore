@@ -1,0 +1,14 @@
+# Build objects.
+*.log
+*.a
+*.dSYM
+.DS_Store
+
+# Some executable used during testing.
+tcp_echo_client
+tcp_echo_server
+kvstore2pcsystem
+test_rpc
+test_command_parser
+test_system
+test_record
