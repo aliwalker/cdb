@@ -131,7 +131,7 @@ function do_make
 {
 	echo "Start make, waiting for a while......"
 	cd ${LAB3_ABSOLUTE_PATH}/
-	mkdir build && cd build
+	mkdir -p build && cd build
 	cmake ..
 	make
 	retval=$?
