@@ -3,11 +3,12 @@
 *.a
 *.dSYM
 .DS_Store
+build/
 
 # Some executable used during testing.
 tcp_echo_client
 tcp_echo_server
-kvstore2pcsystem
+cdb
 test_rpc
 test_command_parser
 test_system

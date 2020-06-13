@@ -2,5 +2,5 @@
 
 set -e
 
-PIDS=$(pgrep kvstore2pcsystem)
+PIDS=$(pgrep cdb)
 kill -9 ${PIDS}

@@ -26,13 +26,14 @@ For more details, please look into the [internal_documentation.md](./internal_do
 ## Requirments
 
 - Linux/macOS.
-- GNU make.
+- CMake with version >= 3.9.
 - C++11 compliant compiler.
 
-Note that we only support Linux and macOS. Other *nix OS probably does not compile the source. 
-Also note, to simplify your target machine setup, we've stripped all CMake related build-system and instead adding some ad-hoc Makefiles such that you can compile the whole project with a simple make command:
-
 ```
+git clone --recurse-submodules https://github.com/aliwalker/cdb.git
+cd cdb
+mkdir build && cd build
+cmake ..
 make
 ```
 
@@ -42,23 +43,25 @@ See [testing.sh](testing.sh) for details.
 ## Usage
 
 ```
-./kvstore2pcsystem [options]
+./cdb [options]
 
-  -h --help [default: (unset)]
+  -h --help
       print this message and exit
   -m --mode [default: participant]
-      specify the mode of the server. ["coordinator" | "participant"]. Defaulted
-       to "participant"
-  -a --ip [default: ]
+      specify the mode of the server. The value can be one of the following:
+      - "coordinator"
+      - "participant"
+      Defaulted to "participant"
+  -a --ip
       specify an ip address. Defaulted to 127.0.0.1
-  -c --config_path [default: ]
+  -c --config_path
       specify the path to config
-  -p --port [default: 0]
+  -p --port
       specify a port.
-  -P --participant_addrs [default: ]
+  -P --participant_addrs
       specify a list of participant addrs separated by ';'. E.g. "ip1:port1;ip2:p"
       ort2
-  -C --coordinator_addr [default: ]
+  -C --coordinator_addr
       specify the address of coordinator. E.g., 127.0.0.1:8080
 ```
 

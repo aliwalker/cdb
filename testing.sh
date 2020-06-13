@@ -166,7 +166,7 @@ function run_kvstore2pcsystem
 	
 	for (( i=0; i<$START_RETYR_TIMES; i++ ))
 	do
-		${LAB3_ABSOLUTE_PATH}/kvstore2pcsystem --config_path ${coordinator_config_path} &
+		${LAB3_ABSOLUTE_PATH}/cdb --config_path ${coordinator_config_path} &
 		check_background_process_start_status $!
 		retval=$?
 		sleep 0.5
