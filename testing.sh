@@ -130,7 +130,10 @@ function init_network_env
 function do_make
 {
 	echo "Start make, waiting for a while......"
-	make -C ${LAB3_ABSOLUTE_PATH}/
+	cd ${LAB3_ABSOLUTE_PATH}/
+	mkdir build && cd build
+	cmake ..
+	make
 	retval=$?
 
 	if [ $retval -eq 0 ]
@@ -166,7 +169,7 @@ function run_kvstore2pcsystem
 	
 	for (( i=0; i<$START_RETYR_TIMES; i++ ))
 	do
-		${LAB3_ABSOLUTE_PATH}/cdb --config_path ${coordinator_config_path} &
+		${LAB3_ABSOLUTE_PATH}/build/cdb --config_path ${coordinator_config_path} &
 		check_background_process_start_status $!
 		retval=$?
 		sleep 0.5
@@ -193,7 +196,7 @@ function run_kvstore2pcsystem
 		do
 			for (( j=0; j<$START_RETYR_TIMES; j++ ))
 			do
-				${LAB3_ABSOLUTE_PATH}/kvstore2pcsystem --config_path ${participants_config_path[i]} &
+				${LAB3_ABSOLUTE_PATH}/build/cdb --config_path ${participants_config_path[i]} &
 				check_background_process_start_status $!
 				retval=$?
 
@@ -625,6 +628,36 @@ function test_item9
 
 }
 
+printf -v standard_item10 "*1\r\n\$20\r\nitem10_key_2_value_2\r"
+function test_item10
+{
+	set_tag
+	echo "---------------------------------- Test item 10 ----------------------------------"
+	echo "Test item 10. Test point: extreme version test."
+
+	# Restart all participants
+	restart_kvstore2pcsystem_if_down_abnormally
+
+	send_set_command 12 item10_key_1 20 item10_key_1_value_1
+	send_set_command 12 item10_key_2 20 item10_key_2_value_2
+	kill_one_of_participants
+	kill_and_restart_coordinator_robustly
+	run_kvstore2pcsystem_robustly $START_FIRST_PARTICIPANT_ONLY
+	sleep 10
+	kill_two_of_participants
+
+	send_get_command 12 item10_key_2
+
+	if [[ $get_result = $standard_item10 ]]
+	then
+		echo "============================ [PASSED] : Test item 10 ============================"
+		return $PASSED
+	else
+		echo "============================ [FAILED] : Test item 10 ============================"
+		return $FAILED
+	fi
+
+}
 
 # ######################################################################
 
@@ -656,6 +689,8 @@ function cloud_roll_up
 	TEST_RESULT_ARR[8]=$?
 	test_item9
 	TEST_RESULT_ARR[9]=$?
+	test_item10
+	TEST_RESULT_ARR[10]=$?
 
 	echo "---------------------------------- Global test done ----------------------------------"
 }
@@ -668,6 +703,7 @@ function clean_up
 
 function show_test_result
 {
+	exit_status=0
 	echo "Language: [${TEST_RESULT_ARR[0]}]"
 	for (( i=1; i<10; i++ ))
 	do
@@ -675,9 +711,11 @@ function show_test_result
 		then
 			echo "Test item ${i}: PASSED"
 		else
+			exit_status=1
 			echo "Test item ${i}: FAILED"
 		fi
 	done
+	return exit_status
 }
 
 function prepare_test_env
