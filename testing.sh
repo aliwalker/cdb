@@ -715,7 +715,7 @@ function show_test_result
 			echo "Test item ${i}: FAILED"
 		fi
 	done
-	return exit_status
+	return ${exit_status}
 }
 
 function prepare_test_env
