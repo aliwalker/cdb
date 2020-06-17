@@ -1,7 +1,7 @@
 #include "exceptions.hpp"
 #include "tcp_client.hpp"
 
-namespace tcp_server_lib {
+namespace cdb_tcp_server {
 
 tcp_client::tcp_client()
     : reactor_(get_default_reactor())
@@ -210,4 +210,4 @@ bool tcp_client::operator!=(const tcp_client &rhs) const
     return socket_ != rhs.socket_;
 }
 
-}   // namespace tcp_server_lib
+}   // namespace cdb_tcp_server

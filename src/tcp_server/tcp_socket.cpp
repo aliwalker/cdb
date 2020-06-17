@@ -10,7 +10,7 @@
 #include "exceptions.hpp"
 #include "tcp_socket.hpp"
 
-namespace tcp_server_lib
+namespace cdb_tcp_server
 {
 
 tcp_socket::tcp_socket()
@@ -258,4 +258,4 @@ bool tcp_socket::operator!=(const tcp_socket &rhs) const
     return !operator==(rhs);
 }
 
-} // namespace tcp_server_lib
+} // namespace cdb_tcp_server

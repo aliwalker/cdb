@@ -1,7 +1,7 @@
 #include <sys/select.h>
 #include "reactor.hpp"
 
-namespace tcp_server_lib
+namespace cdb_tcp_server
 {
 
 static std::unique_ptr<reactor> default_reactor;
@@ -284,4 +284,4 @@ void reactor::dispatch_write(int fd)
     });
 }
 
-} // namespace tcp_server_lib
+} // namespace cdb_tcp_server

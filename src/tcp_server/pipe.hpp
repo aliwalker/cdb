@@ -3,7 +3,7 @@
 
 #include <unistd.h>
 
-namespace tcp_server_lib {
+namespace cdb_tcp_server {
 
 /// Wrapper around *nix pipe.
 class pipe {
@@ -23,6 +23,6 @@ public:
 private:
     int fds[2];
 };
-}   // namespace tcp_server_lib
+}   // namespace cdb_tcp_server
 
 #endif

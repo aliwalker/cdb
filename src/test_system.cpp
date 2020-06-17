@@ -4,7 +4,7 @@
 #include <string>
 #include <iostream>
 #include "tcp_server/tcp_client.hpp"
-using tcp_server_lib::tcp_client;
+using cdb_tcp_server::tcp_client;
 
 std::mutex mutex;
 std::condition_variable cond;

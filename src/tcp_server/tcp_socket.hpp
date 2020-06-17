@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-namespace tcp_server_lib
+namespace cdb_tcp_server
 {
 
 /// A simple wrapper around socket interface provided by *nix.
@@ -94,7 +94,7 @@ private:
     type type_;
 };
 
-} // namespace tcp_server_lib
+} // namespace cdb_tcp_server
 
 
 #endif

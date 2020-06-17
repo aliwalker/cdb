@@ -705,7 +705,7 @@ function show_test_result
 {
 	exit_status=0
 	echo "Language: [${TEST_RESULT_ARR[0]}]"
-	for (( i=1; i<10; i++ ))
+	for (( i=1; i<11; i++ ))
 	do
 		if [[ ${TEST_RESULT_ARR[i]} -eq $PASSED ]]
 		then

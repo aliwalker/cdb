@@ -8,7 +8,7 @@
 #include "thread_pool.hpp"
 #include "pipe.hpp"
 
-namespace tcp_server_lib {
+namespace cdb_tcp_server {
 
 /// Forward declaration.
 class reactor;
@@ -122,7 +122,7 @@ private:
     std::condition_variable removal_cond;
 };
 
-} // namespace tcp_server_lib
+} // namespace cdb_tcp_server
 
 
 #endif

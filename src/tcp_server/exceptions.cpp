@@ -1,6 +1,6 @@
 #include "exceptions.hpp"
 
-namespace tcp_server_lib
+namespace cdb_tcp_server
 {
 
 tcp_exception::tcp_exception(const std::string msg, const std::string &file, std::size_t line)
@@ -18,4 +18,4 @@ std::size_t tcp_exception::line() const
     return line_;
 }
 
-} // namespace tcp_server_lib
+} // namespace cdb_tcp_server

@@ -9,7 +9,7 @@
 #include "tcp_client.hpp"
 #include "reactor.hpp"
 
-namespace tcp_server_lib
+namespace cdb_tcp_server
 {
 
 class tcp_server
@@ -66,6 +66,6 @@ private:
     on_new_connection_cb_t on_new_connection_cb_;
 };
 
-} // namespace tcp_server_lib
+} // namespace cdb_tcp_server
 
 #endif

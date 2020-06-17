@@ -6,7 +6,7 @@
 #include <string>
 #include "tcp_client.hpp"
 
-using tcp_server_lib::tcp_client;
+using cdb_tcp_server::tcp_client;
 
 std::atomic<std::size_t> count = ATOMIC_VAR_INIT(0);
 std::condition_variable cond;

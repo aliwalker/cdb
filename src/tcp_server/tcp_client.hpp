@@ -8,7 +8,7 @@
 #include "reactor.hpp"
 #include "tcp_socket.hpp"
 
-namespace tcp_server_lib {
+namespace cdb_tcp_server {
 
 /// Proactor TCP client class that utilizes reactor.
 class tcp_client {

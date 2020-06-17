@@ -14,8 +14,8 @@
 
 namespace cdb {
 
-using tcp_server_lib::tcp_server;
-using tcp_server_lib::tcp_client;
+using cdb_tcp_server::tcp_server;
+using cdb_tcp_server::tcp_client;
 
 /// Coordinator class.
 class coordinator {

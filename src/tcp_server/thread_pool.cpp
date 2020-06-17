@@ -1,6 +1,6 @@
 #include "thread_pool.hpp"
 
-namespace tcp_server_lib
+namespace cdb_tcp_server
 {
 
 thread_pool::thread_pool(std::size_t thread_num)
@@ -91,4 +91,4 @@ std::size_t thread_pool::get_thread_num() const
     return thread_num_;
 }
 
-} // namespace tcp_server_lib
+} // namespace cdb_tcp_server

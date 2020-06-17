@@ -3,7 +3,7 @@
 #include "tcp_server.hpp"
 #include "common.hpp"
 
-namespace tcp_server_lib
+namespace cdb_tcp_server
 {
 
 tcp_server::tcp_server()
@@ -102,4 +102,4 @@ tcp_server::on_client_disconnect(std::shared_ptr<tcp_client> client,
         clients_.erase(it);
 }
 
-} // namespace tcp_server_lib
+} // namespace cdb_tcp_server
