@@ -77,7 +77,7 @@ void coordinator::handle_unfinished_records()
     for (auto &pair : records)
     {
         __CDB_LOG(debug, "handle_unfinished_records r id: " + std::to_string(pair.second.id));
-        /// For any 
+
         switch (pair.second.status)
         {
         /// Abort unresolved request.
@@ -143,7 +143,6 @@ void coordinator::init_participant(std::string const &ip, uint16_t port)
     }
     catch (std::exception &err)
     {
-        /// TODO: LOG.
         __CDB_LOG(warn, "remove participant: " + std::string{err.what()});
         participants_.erase(addr);
     }
@@ -278,7 +277,7 @@ void coordinator::handle_new_client(std::shared_ptr<tcp_client> client)
         });
     } catch(std::runtime_error &e) {
         /// Client disconnected.
-        /// TODO: LOG
+        __CDB_LOG(error, "client disconnected");
     }
 }
 
@@ -375,7 +374,7 @@ void coordinator::handle_db_requests(std::shared_ptr<tcp_client> client,
     } 
     catch (std::runtime_error &e)
     {
-        /// TODO: LOG
+        __CDB_LOG(error, "client disconnected");
     }
 }
 
@@ -407,7 +406,6 @@ void coordinator::handle_db_get_request(std::shared_ptr<tcp_client> client,
                 goto PARTICIPANT_CHECK;
             } catch (std::exception &) {
                 // Remove this client.
-                /// TODO: LOG
                 participants_.erase(participants_.begin());
                 participant_dead = true;
                 __CDB_LOG(warn, "handle_db_get_request remove participant");
@@ -674,7 +672,7 @@ void coordinator::handle_command_error(std::shared_ptr<tcp_client> client,
     } 
     catch(std::runtime_error &e)
     {
-        /// TODO: LOG
+        __CDB_LOG(error, "client disconnected");
     }
 }
 
@@ -694,7 +692,7 @@ void coordinator::send_result(std::shared_ptr<tcp_client> client, std::string co
             cb
         });
     } catch(std::runtime_error &e) {
-        /// TODO: LOG
+        __CDB_LOG(error, "client disconnected");
         client->disconnect(false);
     }
 }

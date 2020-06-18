@@ -79,7 +79,7 @@ struct participant::prepare_set_t {
             p_.db_requests_.insert(std::move(cmd));
             return true;
         } catch (std::exception &e) {
-            // LOG.
+            __CDB_LOG(error, std::string{e.what()});
             return false;
         }
     }
@@ -110,7 +110,7 @@ struct participant::prepare_del_t {
 
             return true;
         } catch (std::exception &e) {
-            // LOG.
+            __CDB_LOG(error, std::string{e.what()});
             return false;
         }
     }
@@ -370,7 +370,7 @@ struct participant::recover_t {
 
                 if (i + 1 >= data.size())
                 {
-                    /// TODO: LOG
+                    __CDB_LOG(warn, "RECOVERY failure");
                     return false;
                 }
 
@@ -385,9 +385,12 @@ struct participant::recover_t {
 
             auto s = p_.db_->Put(leveldb::WriteOptions(), pair[0], pair[1]);
             if (!s.ok())
+            {
+                __CDB_LOG(warn, "RECOVERY failure");
                 return false;
+            }
         }
-        __CDB_LOG(info, "recovery success");
+        __CDB_LOG(info, "RECOVERY success");
         return true;
     }
 

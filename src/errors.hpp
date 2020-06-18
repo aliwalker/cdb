@@ -3,6 +3,7 @@
 
 #include <string>
 #include <stdexcept>
+#include "logger.hpp"
 
 #define __RECORD_THROW(msg)                                                             \
     {                                                                                   \
