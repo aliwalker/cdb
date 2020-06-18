@@ -55,7 +55,6 @@ struct configuration {
         PARTICIPANT,
         UNKNOWN
     };
-    ~configuration() { std::cout << "~configuration\n"; }
 
     mode_t mode;
     

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <chrono>
 #include "errors.hpp"
+#include "logger.hpp"
 #include "common.hpp"
 #include "command_parser.hpp"
 #include "coordinator.hpp"
@@ -56,9 +57,9 @@ void coordinator::recovery()
         std::srand(std::time(nullptr));
         next_id_.store(std::rand());
         is_recovered = false;
-        std::cout << "random next_id\n";
+        __CDB_LOG(debug, "random next_id");
     }
-    std::cout << "recovery next_id_: " << next_id_ << std::endl;
+    __CDB_LOG(debug, "recovery next_id_: " + std::to_string(next_id_));
 
     /// Initialize participants.
     init_participants();
@@ -67,7 +68,7 @@ void coordinator::recovery()
 
 void coordinator::handle_unfinished_records()
 {
-    std::cout << "handle_unfinished_records with size == " << r_manager_.records().size() << std::endl;
+    __CDB_LOG(debug, "handle_unfinished_records with size == " + std::to_string(r_manager_.records().size()));
     bool participant_dead = false;
     /// Make a copy!
     std::map<std::uint32_t, record> records{ r_manager_.records().begin(), r_manager_.records().end() };
@@ -75,7 +76,7 @@ void coordinator::handle_unfinished_records()
     /// Handle all unfinished records.
     for (auto &pair : records)
     {
-        std::cout << "handle_unfinished_records r id: " << pair.second.id << std::endl;
+        __CDB_LOG(debug, "handle_unfinished_records r id: " + std::to_string(pair.second.id));
         /// For any 
         switch (pair.second.status)
         {
@@ -94,7 +95,7 @@ void coordinator::handle_unfinished_records()
             break;
         }
     }
-    std::cout << "handle_unfinished_records returned\n";
+    __CDB_LOG(debug, "handle_unfinished_records returned");
 }
 
 void coordinator::init_participants()
@@ -143,7 +144,7 @@ void coordinator::init_participant(std::string const &ip, uint16_t port)
     catch (std::exception &err)
     {
         /// TODO: LOG.
-        std::cout << "remove participant: " << err.what() << std::endl;
+        __CDB_LOG(warn, "remove participant: " + std::string{err.what()});
         participants_.erase(addr);
     }
 
@@ -182,10 +183,10 @@ void coordinator::heartbeat_participants()
                         handle_unfinished_records();
                     }
                 }
-                std::cout << "heartbeat: participants_.size() == " << participants_.size() << std::endl;
+                __CDB_LOG(debug, "heartbeat: participants_.size() == " + std::to_string(participants_.size()));
             }
             catch (std::exception &e) {
-                std::cout << "heartbeat failed\n";
+                __CDB_LOG(warn, "heartbeat failed");
 
                 std::unique_lock<std::mutex> lock(participants_mutex_);
                 std::string addr = addrs[i] + ":" + std::to_string(ports[i]);
@@ -204,7 +205,7 @@ void coordinator::heartbeat_participants()
 /// NOTE: lock is acquired before entering this function.
 bool coordinator::recover_participant(rpc::client &client)
 {
-    std::cout << "recover_participant\n";
+    __CDB_LOG(debug, "recover_participant");
 
     /// If [is_recovered] is marked as false, this means the
     /// coordinator is started with no prior requests before(or started freshly).
@@ -244,31 +245,31 @@ bool coordinator::recover_participant(rpc::client &client)
 
         if (snapshot_ok)
         {
-            std::cout << "snapshot OK\n";
+            __CDB_LOG(info, "snapshot OK");
             try
             {
                 std::uint32_t id = next_id_;
                 client.set_timeout(RPC_TIMEOUT);
                 client.call("RECOVER", snapshot, del_keys_);
                 client.call("SET_NEXT_ID", id);
-                std::cout << "recover done\n";
+                __CDB_LOG(info, "recover done");
                 return true;
             }
             catch (std::exception &e)
             {
-                std::cout << "recover failed: " << e.what() << std::endl;
+                __CDB_LOG(warn, "recover failed: " + std::string{e.what()});
                 return false;
             }
         }
     }
 
-    std::cout << "recovery failed because all participants were dead" << std::endl;
+    __CDB_LOG(warn, "recovery failed because all participants were dead");
     return false;
 }
 
 void coordinator::handle_new_client(std::shared_ptr<tcp_client> client)
 {
-    std::cout << "handle_new_client" << std::endl;
+    __CDB_LOG(info, "handle_new_client");
     try {
         /// Asynchronously read a db request from client.
         client->async_read({
@@ -292,7 +293,7 @@ void coordinator::handle_db_requests(std::shared_ptr<tcp_client> client,
         return;
     }
 
-    std::cout << "handle_db_requests with " << req.data.size() << " bytes" << std::endl;
+    __CDB_LOG(debug, "handle_db_requests with " + std::to_string(req.data.size()) + std::string{" bytes"});
     std::vector<char> data;
     if (prev_data)
         data = std::move(*prev_data);
@@ -313,12 +314,12 @@ void coordinator::handle_db_requests(std::shared_ptr<tcp_client> client,
     {
         is_incomplete = true;
         parse_error = true;
-        std::cout << "parse error: " << e.what() << std::endl;
+        __CDB_LOG(warn, "parse error: " + std::string{e.what()});
     }
     catch (std::runtime_error &e)
     {
         parse_error = true;
-        std::cout << "parse error: " << e.what() << std::endl;
+        __CDB_LOG(warn, "parse error: " + std::string{e.what()});
     }
 
     /// Dispatch.
@@ -409,7 +410,7 @@ void coordinator::handle_db_get_request(std::shared_ptr<tcp_client> client,
                 /// TODO: LOG
                 participants_.erase(participants_.begin());
                 participant_dead = true;
-                std::cout << "handle_db_get_request remove participant" << std::endl;
+                __CDB_LOG(warn, "handle_db_get_request remove participant");
             }
         }
     }
@@ -429,7 +430,7 @@ void coordinator::handle_db_set_request(std::shared_ptr<tcp_client> client,
     std::unique_lock<std::mutex> lock(participants_mutex_);
     if (participants_.empty())
     {
-        std::cout << "participant empty" << std::endl;
+        __CDB_LOG(warn, "participant empty");
         /// The system cannot function.
         send_error(client);
         return;
@@ -444,24 +445,24 @@ void coordinator::handle_db_set_request(std::shared_ptr<tcp_client> client,
     /// PREPARE
     bool prepare_ok = true;
     bool participant_dead = false;
-    std::cout << "participants_.size() " << participants_.size() << std::endl;
+    __CDB_LOG(info, "participants_.size() == " + std::to_string(participants_.size()));
     for (auto iter = participants_.begin(); iter != participants_.end(); )
     {
         try
         {
-            std::cout << "prepare_set " << cmd.id() << std::endl;;
+            __CDB_LOG(info, "prepare_set " + std::to_string(cmd.id()));
             iter->second->set_timeout(RPC_TIMEOUT);
             prepare_ok = iter->second->call("PREPARE_SET", cmd).as<bool>();
             if (!prepare_ok)
                 break;
-            std::cout << "prepare_set ok\n";
+            __CDB_LOG(info, "prepare_set ok");
         } 
         catch (std::exception &e)
         {
             /// Unreachable db
             iter = participants_.erase(iter);
             participant_dead = true;
-            std::cout << "handle_db_set_request remove participant" << std::endl;
+            __CDB_LOG(warn, "handle_db_set_request remove participant");
             continue;
         }
         iter++;
@@ -494,7 +495,7 @@ void coordinator::handle_db_del_request(std::shared_ptr<tcp_client> client,
     std::unique_lock<std::mutex> lock(participants_mutex_);
     if (participants_.empty())
     {
-        std::cout << "participant empty" << std::endl;
+        __CDB_LOG(warn, "participant empty");
         /// The system cannot function.
         send_error(client);
         return;
@@ -520,7 +521,7 @@ void coordinator::handle_db_del_request(std::shared_ptr<tcp_client> client,
             /// Unreachable db
             iter = participants_.erase(iter);
             participant_dead = true;
-            std::cout << "handle_db_del_request removed participant" << std::endl;
+            __CDB_LOG(warn, "handle_db_del_request removed participant");
             continue;
         }
         iter++;
@@ -566,21 +567,21 @@ void coordinator::commit_db_request(std::shared_ptr<tcp_client> client,
     {
         try
         {
-            std::cout << "before commit" << std::endl;
+            __CDB_LOG(info, "before commit");
             iter->second->set_timeout(RPC_TIMEOUT);
             if (ret.empty())
                 ret = iter->second->call("COMMIT", id).as<std::string>();
             else
                 iter->second->call("COMMIT", id).as<std::string>();
 
-            std::cout << "commit result: " << ret << std::endl;
+            __CDB_LOG(info, "commit result: " + ret);
         }
         catch (std::exception &e)
         {
             /// Unreachable db.
             iter = participants_.erase(iter);
             participant_dead = true;
-            std::cout << "commit_db_request remove participants" << std::endl;
+            __CDB_LOG(warn, "commit_db_request remove participants");
             continue;
         }
         iter++;
@@ -619,7 +620,7 @@ void coordinator::abort_db_request(std::shared_ptr<tcp_client> client,
             /// Unreachable db.
             iter = participants_.erase(iter);
             participant_dead = true;
-            std::cout << "abort_db_request removed participant" << std::endl;
+            __CDB_LOG(warn, "abort_db_request removed participant");
             continue;
         }
         iter++;
@@ -660,7 +661,7 @@ void coordinator::handle_command_error(std::shared_ptr<tcp_client> client,
         send_error(client);
         return;
     }
-    std::cout << "handle incomplete error" << std::endl;
+    __CDB_LOG(info, "handle incomplete error");
 
     /// Error caused by an incomplete command.
     try
@@ -679,7 +680,7 @@ void coordinator::handle_command_error(std::shared_ptr<tcp_client> client,
 
 void coordinator::send_error(std::shared_ptr<tcp_client> client)
 {
-    std::cout << "send_error\n";
+    __CDB_LOG(info, "send_error");
     send_result(client, participant::error_string, [=](tcp_client::write_result &) {
         client->disconnect(false);
     });

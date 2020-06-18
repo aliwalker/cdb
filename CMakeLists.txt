@@ -30,6 +30,8 @@ add_executable(${PROJECT_NAME}
     "src/coordinator.cpp"
     "src/errors.hpp"
     "src/errors.cpp"
+    "src/logger.hpp"
+    "src/logger.cpp"
     "src/participant.hpp"
     "src/participant.cpp"
     "src/record.hpp"

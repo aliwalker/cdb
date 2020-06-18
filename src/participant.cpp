@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include "command_parser.hpp"
 #include "errors.hpp"
+#include "logger.hpp"
 #include "participant.hpp"
 
 namespace cdb {
@@ -23,7 +24,7 @@ struct participant::get_handler_t {
         std::string value;
         leveldb::Status status = p_.db_->Get(leveldb::ReadOptions(), key, &value);
 
-        std::cout << "GET " << key << std::endl;
+        __CDB_LOG(info, "GET " + key);
         if (status.ok())
             return encode_result(value);
         else
@@ -66,6 +67,8 @@ struct participant::prepare_set_t {
     {
         try {
             std::lock_guard<std::mutex> lock(p_.db_request_mutex_);
+            __CDB_LOG(info, "PREPARE SET " + std::to_string(set_cmd.id()));
+
             /// Log record and cache it.
             /// NOTE: always log the command itself first. This can ensure that if we have a
             /// record, we can find the corresponding command. Not vice versa.
@@ -74,8 +77,6 @@ struct participant::prepare_set_t {
             std::unique_ptr<command> cmd{ new set_command{std::move(set_cmd)} };
             p_.r_manager_.log({ RECORD_PREPARED, cmd->id(), p_.next_id_.fetch_add(0) });
             p_.db_requests_.insert(std::move(cmd));
-
-            // std::cout << "PREPARE SET " << cmd->id()/* id is not moved. */ << std::endl;
             return true;
         } catch (std::exception &e) {
             // LOG.
@@ -97,6 +98,7 @@ struct participant::prepare_del_t {
     {
         try {
             std::lock_guard<std::mutex> lock(p_.db_request_mutex_);
+            __CDB_LOG(info, "PREPARE DEL " + std::to_string(del_cmd.id()));
 
             /// Log record and cache it.
             /// NOTE: always log the command itself first. This can ensure that if we have a
@@ -106,7 +108,6 @@ struct participant::prepare_del_t {
             p_.r_manager_.log({ RECORD_PREPARED, cmd->id(), p_.next_id_.fetch_add(0) });
             p_.db_requests_.insert(std::move(cmd));
 
-            // std::cout << "PREPARE DEL " << cmd->id()/* id is not moved. */ << std::endl;
             return true;
         } catch (std::exception &e) {
             // LOG.
@@ -132,7 +133,7 @@ struct participant::commit_handler_t {
     {
         std::unique_lock<std::mutex> lock(p_.db_request_mutex_);
 
-        std::cout << "COMMIT " << id << std::endl;
+        __CDB_LOG(info, "COMMIT " + std::to_string(id));
 
         /// This request has been seen before.
         /// And we return nothing because this is a coordinator recovery.
@@ -240,7 +241,7 @@ struct participant::abort_handler_t {
 
         /// We can skip RECORD_ABORT because the request itself hasn't applied yet.
         p_.r_manager_.log({ RECORD_ABORT_DONE, id, p_.next_id_.fetch_add(0) + 1 });
-        std::cout << "ABORT " << id << std::endl;
+        __CDB_LOG(info, "ABORT " + std::to_string(id));
         
         /// This is actually a bit tricky:
         /// if p_.next_id_ < id
@@ -290,7 +291,7 @@ struct participant::next_id_handler_t {
 
     std::uint32_t operator()() const
     {
-        std::cout << "next_id_handler: " << p_.next_id_ << std::endl;
+        __CDB_LOG(debug, "NEXT_ID: " + std::to_string(p_.next_id_));
         return p_.next_id_;
     }
 
@@ -313,7 +314,7 @@ struct participant::get_snapshot_t {
 
     std::vector<char> operator()() const
     {
-        std::cout << "GET_SNAPSHOT\n";
+        __CDB_LOG(info, "GET_SNAPSHOT");
         std::vector<char> data;
         auto it = p_.db_->NewIterator(leveldb::ReadOptions());
         
@@ -350,7 +351,7 @@ struct participant::recover_t {
 
     bool operator()(std::vector<char> data, std::set<std::string> del_keys)
     {
-        std::cout << "RECOVER\n";
+        __CDB_LOG(info, "RECOVER");
         /// First apply the deleted keys.
         for (auto &key : del_keys)
         {
@@ -386,7 +387,7 @@ struct participant::recover_t {
             if (!s.ok())
                 return false;
         }
-        std::cout << "recovery success\n";
+        __CDB_LOG(info, "recovery success");
         return true;
     }
 

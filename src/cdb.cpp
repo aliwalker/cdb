@@ -5,6 +5,7 @@
 #include "coordinator.hpp"
 #include "configuration.hpp"
 #include "errors.hpp"
+#include "logger.hpp"
 #include "participant.hpp"
 #include "Flags.hh"
 using cdb::coordinator;
@@ -116,14 +117,14 @@ int main(int argc, char *argv[])
 
         if (conf.participant_addrs.empty() && participant_addrs.empty())
         {
-            std::cerr << "coordinator was started with no participants" << std::endl;
+            __CDB_LOG(error, "coordinator was started with no participants");
             flags.PrintHelp(argv[0]);
             abort();
         }
 
         if (!participant_addrs.empty() && !parse_addrs(participant_addrs, ip_addrs, ports))
         {
-            std::cerr << "invalid participant addresses" << std::endl;
+            __CDB_LOG(error, "invalid participant addresses");
             flags.PrintHelp(argv[0]);
             abort();
         }
@@ -135,7 +136,7 @@ int main(int argc, char *argv[])
             conf.participant_ports = std::move(ports);
         }
 
-        std::cout << "coordinator running at [" << conf.addr << ":" << conf.port << "]\n";
+        __CDB_LOG(info, std::string{"coordinator running at ["} + conf.addr + std::string{":"} + std::to_string(conf.port) + std::string{"]"});
         coordinator c{std::move(conf)};
         c.start();
     }
@@ -157,7 +158,7 @@ int main(int argc, char *argv[])
 
         if (conf.coordinator_addr.empty() && coordinator_addr.empty())
         {
-            std::cerr << "participant was started with no coordinator" << std::endl;
+            __CDB_LOG(error, "participant was started with no coordinator");
             flags.PrintHelp(argv[0]);
             abort();
         }
@@ -166,7 +167,7 @@ int main(int argc, char *argv[])
         std::vector<std::uint16_t> port;
         if (!coordinator_addr.empty() && !parse_addrs(coordinator_addr, ip, port))
         {
-            std::cerr << "invalid coordinator address" << std::endl;
+            __CDB_LOG(error, "invalid coordinator address");
             flags.PrintHelp(argv[0]);
             abort();
         }
@@ -178,7 +179,7 @@ int main(int argc, char *argv[])
             conf.coordinator_port = port[0];
         }
 
-        std::cout << "participant running at [" << conf.addr << ":" << conf.port << "]\n";
+        __CDB_LOG(info, std::string{"participant running at ["} + conf.addr + std::string{":"} + std::to_string(conf.port) + std::string{"]"});
         participant p{std::move(conf)};
         p.start();
     }

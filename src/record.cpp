@@ -1,5 +1,6 @@
 #include <iostream>
 #include "errors.hpp"
+#include "logger.hpp"
 #include "record.hpp"
 
 namespace cdb {
@@ -103,7 +104,7 @@ void record_manager::log(const record &r)
         /// Persist to disk.
         file_.write(reinterpret_cast<const char*>(binary.data()), binary.size());
         file_.flush();
-        std::cout << "persist record " << (int)r.status << " " << r.id << " " << r.next_id << std::endl;
+        __CDB_LOG(info, "persist record " + std::to_string((int)r.status) + " " + std::to_string(r.id) + " " + std::to_string(r.next_id));
 
         if (r.status == RECORD_ABORT_DONE || r.status == RECORD_COMMIT_DONE)
         {
@@ -180,7 +181,7 @@ void record_manager::log(const command *cmd)
     {
         cmd_file_.write(reinterpret_cast<const char*>(binary.data()), binary.size());
         cmd_file_.flush();
-        std::cout << "persist command " << cmd->id() << std::endl;
+        __CDB_LOG(info, "persist command " + std::to_string(cmd->id()));
 
         /// No need to keep it in memory since the participant already has one.
     }
@@ -196,13 +197,13 @@ void record_manager::init_records()
     std::vector<unsigned char> data(std::istreambuf_iterator<char>(file_), {});
     std::size_t start = 0;
 
-    std::cout << "init_records with data.size() == " << data.size() << std::endl;
+    __CDB_LOG(info, "init_records with data.size() == " + std::to_string(data.size()));
 
     while (start < data.size())
     {
         auto r = record::parse(std::vector<unsigned char>{ data.begin() + start, /* Begin */
                                                 data.begin() + start + record::record_size} /* End */);
-        std::cout << "init_records r " << (int)r.status << " " << r.id << " " << r.next_id << std::endl;
+        __CDB_LOG(info, "init_records r " + std::to_string((int)r.status) + " " + std::to_string(r.id) + " " + std::to_string(r.next_id));
         next_id_ = r.next_id;
         /// Ignore DONE record.
         if (r.status == RECORD_ABORT_DONE || r.status == RECORD_COMMIT_DONE)
