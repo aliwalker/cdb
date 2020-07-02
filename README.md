@@ -4,6 +4,8 @@
 
 # Cdb [![Build Status](https://travis-ci.com/aliwalker/cdb.svg?branch=master)](https://travis-ci.com/aliwalker/cdb)
 
+**NOTE: the primary goal of this project is to learn and implement the 2PC protocol. As a course lab, it has served its purpose.**
+
 Cdb is simple distributed key-value data store that utilizes 2-phase commit and leveldb. It consists of one coordinator and multiple participants. The client interacts with the coordinator using a simplified RESP message format over a TCP connection, while the coordinator sends RPC to all its participants.
 
 Cdb implements the requirements of the [Extreme version](https://github.com/1989chenguo/CloudComputingLabs/tree/master/Lab3#353-extreme-version) of the [CloudComputingLabs](https://github.com/1989chenguo/CloudComputingLabs/tree/master/Lab3). This means that the following claims hold:
@@ -42,6 +44,8 @@ See [testing.sh](testing.sh) for details.
 
 ## Usage
 
+### Server
+
 ```
 ./cdb [options]
 
@@ -65,14 +69,33 @@ See [testing.sh](testing.sh) for details.
       specify the address of coordinator. E.g., 127.0.0.1:8080
 ```
 
+`start_system.sh` is a simple script to start the system with 1 coordinator and 2 participants on the localhost for testing purpose. Use `stop_system.sh` to stop the system.
+
 Apart from the requirements of the Extreme version states, we've added several convenient options to run the server. The coordinator and participants can be started in any orders. 
 
 To use a configuaration, see [src/coordinator.conf](src/coordinator.conf) and [src/participant.conf](src/participant.conf) for sample coordinator and participant configuarations, repectively.
 
-## TODOS
-There're a lot of improvements to make. However, since I'm the only developer of this DB, I do not have enought time.
+### Client
+For completeness, a buggy client library is also provided.
+The client library is archived in the same `libcdb.a` as the server. 
 
-- Add a logger.
-- Write a frontend/cli.
-- Remove all the crazy Makefile things.
-- Make coordinator fault-tolerant.
+```C++
+#include <iostream>
+#include <string>
+#include "cdb.hpp"
+
+int main() {
+    /// Specify the address of the coordinator.
+    cdb::cdb_client client("127.0.0.1", 8080);
+    std::string value;
+
+    if (client.set("foo", "bar"))
+        std::cout << "SET foo bar" << std::endl;
+
+    if (client.get("foo", value))
+        std::cout << "foo: " << value << std::endl;
+
+    if (client.del("foo"))
+        std::cout << "DEL foo" << std::endl;
+}
+```

@@ -55,11 +55,6 @@ target_include_directories(cdb_server PRIVATE ${CDB_PUBLIC_INCLUDE_DIR})
 target_include_directories(cdb_server PRIVATE servers)
 target_link_libraries(cdb_server cdb)
 
-add_executable(cdb_client "client/client_test.cpp")
-target_include_directories(cdb_client PRIVATE ${CDB_PUBLIC_INCLUDE_DIR})
-target_include_directories(cdb_client PRIVATE servers)
-target_link_libraries(cdb_client cdb)
-
 ##########
 # flags.hh
 ##########
