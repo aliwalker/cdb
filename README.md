@@ -47,7 +47,7 @@ See [testing.sh](testing.sh) for details.
 ### Server
 
 ```
-./cdb [options]
+./cdb_server [options]
 
   -h --help
       print this message and exit
