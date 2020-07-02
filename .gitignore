@@ -8,8 +8,3 @@ build/
 # Some executable used during testing.
 tcp_echo_client
 tcp_echo_server
-cdb
-test_rpc
-test_command_parser
-test_system
-test_record

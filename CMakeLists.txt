@@ -26,8 +26,7 @@ add_subdirectory(servers/tcp_server)
 # cdb
 ######
 set(CDB_PUBLIC_INCLUDE_DIR "include/cdb")
-add_executable(${PROJECT_NAME}
-    "servers/cdb.cpp"
+add_library(cdb
     "servers/command.cpp"
     "servers/command_parser.cpp"
     "servers/configuration.cpp"
@@ -36,6 +35,7 @@ add_executable(${PROJECT_NAME}
     "servers/logger.cpp"
     "servers/participant.cpp"
     "servers/record.cpp"
+    "client/client.cpp"
     "${CDB_PUBLIC_INCLUDE_DIR}/command.hpp"
     "${CDB_PUBLIC_INCLUDE_DIR}/command_parser.hpp"
     "${CDB_PUBLIC_INCLUDE_DIR}/common.hpp"
@@ -43,15 +43,26 @@ add_executable(${PROJECT_NAME}
     "${CDB_PUBLIC_INCLUDE_DIR}/errors.hpp"
     "${CDB_PUBLIC_INCLUDE_DIR}/logger.hpp"
     "${CDB_PUBLIC_INCLUDE_DIR}/participant.hpp"
-    "${CDB_PUBLIC_INCLUDE_DIR}/record.hpp")
+    "${CDB_PUBLIC_INCLUDE_DIR}/record.hpp"
+    "${CDB_PUBLIC_INCLUDE_DIR}/client.hpp")
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CDB_PUBLIC_INCLUDE_DIR})
-target_include_directories(${PROJECT_NAME} PRIVATE servers)
+target_include_directories(cdb PUBLIC ${CDB_PUBLIC_INCLUDE_DIR})
+target_include_directories(cdb PRIVATE servers)
 target_link_libraries(${PROJECT_NAME} leveldb rpc tcp_server)
+
+add_executable(cdb_server "servers/main.cpp")
+target_include_directories(cdb_server PRIVATE ${CDB_PUBLIC_INCLUDE_DIR})
+target_include_directories(cdb_server PRIVATE servers)
+target_link_libraries(cdb_server cdb)
+
+add_executable(cdb_client "client/client_test.cpp")
+target_include_directories(cdb_client PRIVATE ${CDB_PUBLIC_INCLUDE_DIR})
+target_include_directories(cdb_client PRIVATE servers)
+target_link_libraries(cdb_client cdb)
 
 ##########
 # flags.hh
 ##########
 target_include_directories(
-    ${PROJECT_NAME} PRIVATE
+    cdb_server PRIVATE
     third_party/flags.hh/)

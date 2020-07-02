@@ -13,7 +13,7 @@ namespace cdb_tcp_server {
 /// Proactor TCP client class that utilizes reactor.
 class tcp_client {
 public:
-    tcp_client();
+    tcp_client(reactor *r = nullptr);
     /// Rule of 5.
     ~tcp_client();
     /// Explicitly disallow move/copy.

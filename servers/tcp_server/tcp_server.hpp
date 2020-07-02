@@ -15,7 +15,7 @@ namespace cdb_tcp_server
 class tcp_server
 {
 public:
-    tcp_server();
+    tcp_server(reactor *r = nullptr);
     /// Rule of 5.
     ~tcp_server();
     tcp_server(const tcp_server&) = delete;

@@ -3,8 +3,8 @@
 
 namespace cdb_tcp_server {
 
-tcp_client::tcp_client()
-    : reactor_(get_default_reactor())
+tcp_client::tcp_client(reactor *r)
+    : reactor_(r == nullptr ? get_default_reactor() : r)
     , on_disconnection_(nullptr) {}
 
 tcp_client::~tcp_client()

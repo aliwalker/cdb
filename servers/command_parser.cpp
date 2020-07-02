@@ -225,4 +225,63 @@ char command_parser::peek_char()
     return data_[idx_];
 }
 
+std::string command_parser::encode_get(std::string const &key) {
+    std::stringstream ss;
+
+    /// Two elems in the array.
+    ss << "*2" << separator;
+    
+    /// Opcode.
+    ss << "$3" << separator << "GET" << separator;
+
+    /// Key info.
+    ss << "$" << std::to_string(key.length()) << separator;
+    ss << key << separator;
+
+    return ss.str();
+}
+
+std::string command_parser::encode_set(std::string const &key, std::string const &value) {
+    std::stringstream ss;
+
+    /// 3 elems in the array.
+    ss << "*3" << separator;
+    
+    /// Opcode.
+    ss << "$3" << separator << "SET" << separator;
+
+    /// Key info.
+    ss << "$" << std::to_string(key.length()) << separator;
+    ss << key << separator;
+
+    /// Value info.
+    ss << "$" << std::to_string(value.length()) << separator;
+    ss << value << separator;
+
+    return ss.str();
+}
+
+std::string command_parser::encode_del(std::string const &key) {
+    return encode_del({key});
+}
+
+std::string command_parser::encode_del(std::vector<std::string> const &keys) {
+    std::stringstream ss;
+
+    /// # elem in the array.
+    ss << "*" << std::to_string(1 + keys.size()) << separator;
+
+    /// Opcode info.
+    ss << "$3" << separator << "DEL" << separator;
+
+    /// Key info.
+    for (auto &key : keys)
+    {
+        /// Key info.
+        ss << "$" << std::to_string(key.length()) << separator;
+        ss << key << separator;
+    }
+    return ss.str();
+}
+
 }    // namespace cdb

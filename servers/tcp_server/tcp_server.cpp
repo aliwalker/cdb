@@ -6,8 +6,8 @@
 namespace cdb_tcp_server
 {
 
-tcp_server::tcp_server()
-    : reactor_(get_default_reactor())
+tcp_server::tcp_server(reactor *r)
+    : reactor_(r == nullptr ? get_default_reactor() : r)
     , on_new_connection_cb_(nullptr) {}
 
 tcp_server::~tcp_server()
